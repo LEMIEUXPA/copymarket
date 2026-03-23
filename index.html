@@ -3,1002 +3,269 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CopyMarket — Polymarket Copy Trading</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>CopyMarket</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2330;
-  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.16);
-  --text:#e6edf3;--muted:#8b949e;--hint:#484f58;
-  --accent:#00e5a0;--accent-dim:rgba(0,229,160,0.1);
-  --poly:#8247e5;--poly-dim:rgba(130,71,229,0.12);
-  --success:#3fb950;--danger:#f85149;--warning:#d29922;
-  --r:10px;--rl:14px;
-}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--hint);border-radius:2px}
-input,select{font-family:'Syne',sans-serif;font-size:14px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;width:100%;outline:none;transition:border-color .15s}
-input:focus,select:focus{border-color:var(--accent)}
-input::placeholder{color:var(--hint)}
-button{font-family:'Syne',sans-serif;cursor:pointer;border:none;outline:none}
-.mono{font-family:'DM Mono',monospace}
-
-/* ── Layout ── */
-#app{display:flex;height:100vh;overflow:hidden}
-#sidebar{width:200px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 0}
-#main{flex:1;overflow-y:auto;background:var(--bg)}
-.page{padding:28px;max-width:860px}
-
-/* ── Sidebar ── */
-.logo{font-size:18px;font-weight:800;letter-spacing:-.5px;padding:0 18px 16px}
-.logo span{color:var(--accent)}
-.bot-status{display:flex;align-items:center;gap:8px;margin:0 12px 16px;padding:8px 10px;background:var(--bg3);border-radius:8px;font-size:12px;color:var(--muted)}
-.bot-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);transition:background .3s}
-.bot-dot.on{background:var(--accent);box-shadow:0 0 6px var(--accent);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-nav{flex:1;display:flex;flex-direction:column;gap:2px;padding:0 8px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;background:transparent;color:var(--muted);font-size:13px;font-weight:500;transition:all .15s;width:100%;text-align:left}
-.nav-item:hover{background:var(--bg3);color:var(--text)}
-.nav-item.active{background:var(--accent-dim);color:var(--accent)}
-.nav-icon{font-size:15px;width:18px;text-align:center}
-.sidebar-bottom{padding:0 12px}
-.wallet-info{display:flex;align-items:center;gap:9px;padding:10px;background:var(--bg3);border-radius:8px;margin-bottom:8px}
-.wallet-dot-sm{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0}
-.wallet-addr{font-size:11px;font-family:'DM Mono',monospace;color:var(--text)}
-.wallet-bal{font-size:11px;color:var(--muted);margin-top:1px}
-.disconnect-btn{width:100%;padding:8px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:12px;transition:all .15s}
-.disconnect-btn:hover{border-color:var(--danger);color:var(--danger);background:rgba(248,81,73,.08)}
-
-/* ── Connect screen ── */
-#connect-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:24px}
-.connect-card{width:100%;max-width:400px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:32px}
-.connect-logo{text-align:center;margin-bottom:28px}
-.connect-badge{font-size:36px;color:var(--accent);display:block;margin-bottom:10px}
-.connect-title{font-size:24px;font-weight:800;letter-spacing:-1px}
-.connect-title span{color:var(--accent)}
-.connect-sub{font-size:13px;color:var(--muted);margin-top:4px}
-.mm-box{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px}
-.mm-icon{font-size:28px;flex-shrink:0}
-.mm-title{font-size:15px;font-weight:700;margin-bottom:3px}
-.mm-desc{font-size:12px;color:var(--muted);line-height:1.5}
-.connect-btn{width:100%;padding:13px;border-radius:10px;border:none;background:var(--accent);color:#0a1a12;font-size:15px;font-weight:700;transition:opacity .2s;margin-bottom:14px}
-.connect-btn:hover:not(:disabled){opacity:.85}
-.connect-btn:disabled{opacity:.5;cursor:not-allowed}
-.connect-btn.success{background:var(--success)}
-.step-indicator{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);margin-bottom:12px;padding:8px 12px;background:var(--bg3);border-radius:6px}
-.spinner{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid var(--border2);border-top-color:var(--accent);animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.error-box{color:var(--danger);font-size:12px;margin-bottom:12px;padding:8px 12px;background:rgba(248,81,73,.08);border-radius:6px;border:1px solid rgba(248,81,73,.2)}
-.no-mm{text-align:center;font-size:12px;color:var(--muted);margin-bottom:18px}
-.no-mm a{color:var(--accent);text-decoration:none}
-.sec-note{display:flex;gap:12px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)}
-.sec-icon{font-size:18px;flex-shrink:0}
-.sec-t{font-size:13px;font-weight:600;margin-bottom:2px}
-.sec-d{font-size:11px;color:var(--muted)}
-
-/* ── Cards ── */
-.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:28px}
-.stat-card{background:var(--bg2);border-radius:var(--r);padding:14px 16px;border:1px solid var(--border)}
-.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.stat-value{font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--accent)}
-.stat-sub{font-size:11px;margin-top:4px;color:var(--muted)}
-
-/* ── Section headers ── */
-.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.section-title{font-size:15px;font-weight:600}
-.badge{font-size:11px;padding:3px 10px;border-radius:10px;background:var(--accent-dim);color:var(--accent);border:1px solid rgba(0,229,160,.3)}
-.badge-warn{background:rgba(210,153,34,.1);color:var(--warning);border:1px solid rgba(210,153,34,.3)}
-.badge-purple{background:var(--poly-dim);color:var(--poly);border:1px solid rgba(130,71,229,.3)}
-
-/* ── Timer bar ── */
-.timer-bar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.3);border-radius:10px;margin-bottom:24px;font-size:13px;color:var(--muted)}
-.timer-bar strong{color:var(--warning)}
-
-/* ── Positions ── */
-.pos-list{display:flex;flex-direction:column;gap:8px}
-.pos-card{display:grid;grid-template-columns:12px 1fr auto auto;align-items:center;gap:14px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);transition:border-color .15s}
-.pos-card:hover{border-color:var(--border2)}
-.pos-dot{width:8px;height:8px;border-radius:50%}
-.pos-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pos-trader{font-size:11px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace}
-.pos-amount{font-size:14px;font-weight:600;font-family:'DM Mono',monospace;color:var(--muted)}
-.pos-pnl{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;text-align:right}
-.up{color:var(--success)}.down{color:var(--danger)}
-.empty{padding:32px;text-align:center;color:var(--muted);font-size:13px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);line-height:1.8}
-
-/* ── Withdraw box ── */
-.withdraw-box{background:var(--poly-dim);border:1px solid rgba(130,71,229,.3);border-radius:var(--rl);padding:20px;margin-top:24px}
-.withdraw-title{font-size:14px;font-weight:600;color:#a78bfa;margin-bottom:14px}
-.withdraw-row{display:flex;justify-content:space-between;margin-bottom:8px}
-.withdraw-key{font-size:13px;color:var(--muted)}
-.withdraw-val{font-size:14px;font-weight:600;font-family:'DM Mono',monospace}
-.withdraw-acc{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent)}
-.progress-wrap{margin:14px 0 12px}
-.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px}
-.progress-bar{height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
-.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .5s}
-.withdraw-btn{width:100%;padding:10px;border-radius:8px;background:transparent;border:1px solid rgba(130,71,229,.4);color:#a78bfa;font-size:13px;font-weight:600;transition:all .2s}
-.withdraw-btn:hover:not(:disabled){background:rgba(130,71,229,.15)}
-.withdraw-btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* ── Bot button ── */
-.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
-.page-title{font-size:22px;font-weight:700;letter-spacing:-.5px}
-.page-subtitle{font-size:12px;color:var(--muted);margin-top:3px}
-.bot-btn{display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;transition:all .2s}
-.bot-btn-dot{width:7px;height:7px;border-radius:50%;background:var(--hint);transition:background .3s}
-.bot-btn-dot.on{background:#0a1a12;animation:pulse 2s infinite}
-.bot-off{background:var(--accent);color:#0a1a12;border:none}
-.bot-off:hover{opacity:.85}
-.bot-on{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent)}
-.bot-on:hover{background:rgba(248,81,73,.1);color:var(--danger);border-color:var(--danger)}
-
-/* ── Traders ── */
-.trader-list{display:flex;flex-direction:column;gap:8px}
-.trader-card{display:grid;grid-template-columns:32px 40px 1fr auto auto auto auto;align-items:center;gap:14px;padding:14px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);transition:border-color .15s}
-.trader-card:hover{border-color:var(--border2)}
-.trader-card.followed{border-color:rgba(0,229,160,.35);background:var(--accent-dim)}
-.rank{font-size:12px;color:var(--hint);font-weight:600;text-align:center}
-.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
-.trader-name{font-size:14px;font-weight:600}
-.trader-addr{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
-.t-stat{text-align:center}
-.t-stat-val{font-size:14px;font-weight:700}
-.t-stat-lab{font-size:10px;color:var(--muted);margin-top:1px}
-.follow-btn{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;transition:all .15s;white-space:nowrap}
-.follow-off{background:transparent;border:1px solid var(--border);color:var(--muted)}
-.follow-off:hover{border-color:var(--accent);color:var(--accent)}
-.follow-on{background:var(--accent);border:1px solid var(--accent);color:#0a1a12}
-.custom-row{display:flex;gap:10px;margin-bottom:20px}
-.custom-row input{font-family:'DM Mono',monospace !important;font-size:12px !important}
-.add-btn{padding:9px 18px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-size:13px;font-weight:600;white-space:nowrap;transition:border-color .15s}
-.add-btn:hover{border-color:var(--accent);color:var(--accent)}
-
-/* ── Settings ── */
-.settings-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:20px;margin-bottom:16px}
-.settings-section-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}
+body{font-family:'Inter',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 16px}
+.logo{font-size:28px;font-weight:700;color:#00e5a0;margin-bottom:6px;letter-spacing:-1px}
+.sub{font-size:14px;color:#484f58;margin-bottom:36px}
+.card{width:100%;max-width:480px;background:#161b22;border:1px solid #21262d;border-radius:16px;padding:28px;margin-bottom:14px}
+.card-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.card-sub{font-size:13px;color:#8b949e;margin-bottom:20px}
 .field{margin-bottom:14px}
 .field:last-child{margin-bottom:0}
-.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500}
-.field-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.api-note{font-size:11px;color:var(--hint);margin-top:10px;padding:8px 12px;background:var(--bg3);border-radius:6px}
-.api-note a{color:var(--accent);text-decoration:none}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
-.toggle-row:last-child{border-bottom:none;padding-bottom:0}
-.toggle-label{font-size:14px;font-weight:500}
-.toggle-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.toggle{width:40px;height:22px;border-radius:11px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;border:none}
-.toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:white;top:3px;left:3px;transition:transform .2s}
-.toggle.on{background:var(--accent)}.toggle.on::after{transform:translateX(18px)}
-.toggle.off{background:var(--hint)}
-.pct-row{display:flex;gap:8px;flex-wrap:wrap}
-.pct-chip{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;border:1px solid var(--border);color:var(--muted);transition:all .15s}
-.pct-chip:hover{border-color:var(--accent);color:var(--accent)}
-.pct-chip.sel{border-color:var(--accent);background:var(--accent-dim);color:var(--text)}
-.save-btn{width:100%;padding:13px;border-radius:10px;border:none;background:var(--accent);color:#0a1a12;font-size:15px;font-weight:700;transition:all .2s;margin-top:4px}
-.save-btn:hover{opacity:.85}
-.save-btn.saved{background:var(--success)}
-
-/* ── History ── */
-.filter-row{display:flex;gap:6px;flex-wrap:wrap}
-.filter-btn{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;background:transparent;border:1px solid var(--border);color:var(--muted);transition:all .15s;cursor:pointer}
-.filter-btn:hover{border-color:var(--border2);color:var(--text)}
-.filter-btn.active{background:var(--accent-dim);border-color:rgba(0,229,160,.4);color:var(--accent)}
-.activity-list{display:flex;flex-direction:column;gap:6px}
-.activity-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);transition:border-color .15s}
-.activity-item:hover{border-color:var(--border2)}
-.act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.act-msg{font-size:13px;font-weight:500}
-.act-time{font-size:11px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace}
-.act-amount{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap}
-
-/* ── Tabs ── */
-.tab-content{display:none}.tab-content.active{display:block}
+.field label{display:block;font-size:12px;color:#8b949e;margin-bottom:6px;font-weight:500}
+.field input{width:100%;padding:11px 14px;background:#0d1117;border:1px solid #30363d;border-radius:8px;font-size:13px;color:#e6edf3;font-family:monospace;outline:none;transition:border-color .15s}
+.field input:focus{border-color:#00e5a0}
+.field input::placeholder{color:#484f58}
+.help{font-size:12px;color:#484f58;margin-top:5px}
+.help a{color:#1f6feb;text-decoration:none}
+.btn{width:100%;padding:14px;border-radius:10px;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s}
+.btn-green{background:#00e5a0;color:#0a1a12}
+.btn-green:hover{opacity:.9}
+.btn-green:disabled{opacity:.35;cursor:not-allowed}
+.btn-red{background:#f85149;color:white;display:none}
+.wallet-pill{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0d1117;border:1px solid #21262d;border-radius:8px;margin-bottom:20px}
+.w-dot{width:8px;height:8px;border-radius:50%;background:#00e5a0;flex-shrink:0}
+.w-addr{font-family:monospace;font-size:12px;color:#8b949e}
+.w-bal{font-size:13px;font-weight:600;color:#00e5a0;margin-left:auto}
+.status{width:100%;max-width:480px;padding:13px 16px;border-radius:10px;font-size:13px;margin-bottom:10px;display:none;gap:8px;align-items:center}
+.s-info{background:rgba(31,111,235,.1);border:1px solid rgba(31,111,235,.25);color:#58a6ff;display:flex}
+.s-ok{background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.25);color:#00e5a0;display:flex}
+.s-err{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.25);color:#f85149;display:flex}
+.pulse{width:8px;height:8px;border-radius:50%;background:currentColor;flex-shrink:0;animation:p 1.5s infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+.logs{width:100%;max-width:480px;background:#161b22;border:1px solid #21262d;border-radius:12px;padding:14px;font-family:monospace;font-size:12px;color:#8b949e;height:160px;overflow-y:auto;display:none}
+.log-ok{color:#3fb950}.log-err{color:#f85149}.log-warn{color:#d29922}
 </style>
 </head>
 <body>
 
-<!-- ══════════════ CONNECT SCREEN ══════════════ -->
-<div id="connect-screen">
-  <div class="connect-card">
-    <div class="connect-logo">
-      <span class="connect-badge">◈</span>
-      <div class="connect-title">Copy<span>Market</span></div>
-      <div class="connect-sub">Polymarket Copy Trading</div>
-    </div>
-    <div class="mm-box">
-      <div class="mm-icon">🦊</div>
-      <div>
-        <div class="mm-title">MetaMask</div>
-        <div class="mm-desc">Un clic — MetaMask s'ouvre, tu approuves, connecté sur Polygon.</div>
-      </div>
-    </div>
-    <div id="connect-error" class="error-box" style="display:none"></div>
-    <div id="connect-step" class="step-indicator" style="display:none">
-      <div class="spinner"></div>
-      <span id="connect-step-text"></span>
-    </div>
-    <button class="connect-btn" id="connect-btn" onclick="connectMetaMask()">
-      Connecter MetaMask
-    </button>
-    <div class="no-mm">
-      Pas MetaMask? <a href="https://metamask.io/download/" target="_blank">Télécharger →</a>
-    </div>
-    <div class="sec-note">
-      <div class="sec-icon">🔒</div>
-      <div>
-        <div class="sec-t">Connexion sécurisée</div>
-        <div class="sec-d">Réseau Polygon · USDC · Aucune clé privée stockée</div>
-      </div>
-    </div>
+<div class="logo">CopyMarket</div>
+<div class="sub">Polymarket Copy Trading · MetaMask + Polygon</div>
+
+<!-- Card 1: Wallet -->
+<div class="card" id="c1">
+  <div class="card-title">1 · Connecte ton wallet</div>
+  <div class="card-sub">MetaMask sur le réseau Polygon · un clic</div>
+  <button class="btn btn-green" onclick="connectWallet()">🦊 &nbsp;Connecter MetaMask</button>
+</div>
+
+<!-- Card 2: Clés (cachée au début) -->
+<div class="card" id="c2" style="display:none">
+  <div class="card-title">2 · Tes clés API</div>
+  <div class="card-sub">Sauvegardées dans ton navigateur seulement</div>
+  <div class="wallet-pill">
+    <div class="w-dot"></div>
+    <div class="w-addr" id="waddr">—</div>
+    <div class="w-bal" id="wbal">—</div>
+  </div>
+  <div class="field">
+    <label>Polygonscan API Key <span style="color:#f85149">*requis</span></label>
+    <input type="text" id="f1" placeholder="Colle ta clé ici...">
+    <div class="help">Gratuit → <a href="https://polygonscan.com/register" target="_blank">polygonscan.com/register</a> &rarr; API Keys &rarr; Add</div>
+  </div>
+  <div class="field">
+    <label>Polymarket API Key</label>
+    <input type="password" id="f2" placeholder="Polymarket API Key">
+  </div>
+  <div class="field">
+    <label>Polymarket Secret</label>
+    <input type="password" id="f3" placeholder="Polymarket Secret">
+  </div>
+  <div class="field">
+    <label>Polymarket Passphrase</label>
+    <input type="password" id="f4" placeholder="Polymarket Passphrase">
+  </div>
+  <div class="help" style="margin-top:4px">Clés Polymarket → <a href="https://docs.polymarket.com" target="_blank">docs.polymarket.com</a> &rarr; CLOB API</div>
+</div>
+
+<!-- Card 3: Traders + Config -->
+<div class="card" id="c3" style="display:none">
+  <div class="card-title">3 · Traders &amp; paramètres</div>
+  <div class="card-sub">Qui copier, combien investir</div>
+  <div class="field">
+    <label>Adresses des traders à copier (séparées par virgule)</label>
+    <input type="text" id="f5" placeholder="0xABC..., 0xDEF...">
+    <div class="help"><a href="https://polymarket.com/leaderboard" target="_blank">Voir le leaderboard Polymarket &rarr;</a></div>
+  </div>
+  <div class="field">
+    <label>Max USDC par trade</label>
+    <input type="number" id="f6" value="50" min="1">
+  </div>
+  <div class="field">
+    <label>% des gains retirés automatiquement chaque dimanche</label>
+    <input type="number" id="f7" value="25" min="1" max="100">
   </div>
 </div>
 
-<!-- ══════════════ MAIN APP ══════════════ -->
-<div id="app" style="display:none">
-  <div id="sidebar">
-    <div class="logo">Copy<span>Market</span></div>
-    <div class="bot-status">
-      <div class="bot-dot" id="bot-dot"></div>
-      <span id="bot-status-text">Bot arrêté</span>
-    </div>
-    <nav>
-      <button class="nav-item active" onclick="switchTab('dashboard',this)"><span class="nav-icon">◈</span>Dashboard</button>
-      <button class="nav-item" onclick="switchTab('traders',this)"><span class="nav-icon">◉</span>Traders</button>
-      <button class="nav-item" onclick="switchTab('settings',this)"><span class="nav-icon">⚙</span>Paramètres</button>
-      <button class="nav-item" onclick="switchTab('history',this)"><span class="nav-icon">≡</span>Historique</button>
-    </nav>
-    <div class="sidebar-bottom">
-      <div class="wallet-info">
-        <div class="wallet-dot-sm"></div>
-        <div>
-          <div class="wallet-addr" id="sidebar-addr">—</div>
-          <div class="wallet-bal" id="sidebar-bal">— USDC</div>
-        </div>
-      </div>
-      <button class="disconnect-btn" onclick="disconnect()">Déconnecter</button>
-    </div>
-  </div>
+<!-- Status -->
+<div class="status" id="st"><div class="pulse"></div><span id="st-txt"></span></div>
 
-  <div id="main">
+<!-- Boutons Start/Stop -->
+<div style="width:100%;max-width:480px;display:none" id="bwrap">
+  <button class="btn btn-green" id="bstart" onclick="startBot()">▶ &nbsp;Démarrer le bot</button>
+  <button class="btn btn-red"   id="bstop"  onclick="stopBot()" style="margin-top:8px">⏹ &nbsp;Arrêter le bot</button>
+</div>
 
-    <!-- ── DASHBOARD ── -->
-    <div id="tab-dashboard" class="tab-content active page">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Dashboard</div>
-          <div class="page-subtitle">Réseau Polygon · USDC</div>
-        </div>
-        <button class="bot-btn bot-off" id="bot-btn" onclick="toggleBot()">
-          <span class="bot-btn-dot" id="bot-btn-dot"></span>
-          <span id="bot-btn-text">Démarrer le bot</span>
-        </button>
-      </div>
-      <div class="timer-bar">⏱ Prochain retrait automatique dans <strong id="countdown">—</strong> &nbsp;— 25% des gains → ton wallet</div>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="stat-label">Solde USDC</div><div class="stat-value" id="stat-usdc">$—</div><div class="stat-sub">Polygon Network</div></div>
-        <div class="stat-card"><div class="stat-label">MATIC</div><div class="stat-value" id="stat-matic" style="font-size:18px">—</div><div class="stat-sub">Pour les frais</div></div>
-        <div class="stat-card"><div class="stat-label">Gains semaine</div><div class="stat-value" id="stat-gains">$0.00</div><div class="stat-sub" id="stat-gains-sub" style="color:var(--accent)">→ $0 à retirer</div></div>
-        <div class="stat-card"><div class="stat-label">Positions</div><div class="stat-value" id="stat-positions">0</div><div class="stat-sub">actives</div></div>
-      </div>
-      <div class="section-head" style="margin-bottom:14px">
-        <div class="section-title">Positions actives</div>
-        <span class="badge" id="positions-badge">0 ouvertes</span>
-      </div>
-      <div id="positions-list">
-        <div class="empty" id="positions-empty">▶ Démarre le bot pour commencer à copier les traders</div>
-      </div>
-      <div class="withdraw-box">
-        <div class="withdraw-title">💸 Retrait hebdomadaire automatique</div>
-        <div class="withdraw-row"><span class="withdraw-key">Gains cette semaine</span><span class="withdraw-val" id="w-gains">$0.00</span></div>
-        <div class="withdraw-row"><span class="withdraw-key">Montant à retirer (25%)</span><span class="withdraw-acc" id="w-amount">$0.00</span></div>
-        <div class="progress-wrap">
-          <div class="progress-label"><span>Progression semaine</span><span id="w-pct">0%</span></div>
-          <div class="progress-bar"><div class="progress-fill" id="w-bar" style="width:0%"></div></div>
-        </div>
-        <button class="withdraw-btn" id="withdraw-btn" onclick="manualWithdraw()">Retirer maintenant manuellement</button>
-      </div>
-    </div>
-
-    <!-- ── TRADERS ── -->
-    <div id="tab-traders" class="tab-content page">
-      <div class="page-header">
-        <div>
-          <div class="page-title">Top Traders</div>
-          <div class="page-subtitle">Polymarket Leaderboard — 30 jours</div>
-        </div>
-        <span class="badge" id="followed-count">0 suivis</span>
-      </div>
-      <div class="custom-row">
-        <input type="text" id="custom-addr" placeholder="Ajouter un wallet manuellement: 0x..." style="font-family:'DM Mono',monospace;font-size:12px">
-        <button class="add-btn" onclick="addCustomTrader()">+ Ajouter</button>
-      </div>
-      <div class="trader-list" id="traders-list">
-        <div class="empty">Chargement du leaderboard...</div>
-      </div>
-    </div>
-
-    <!-- ── SETTINGS ── -->
-    <div id="tab-settings" class="tab-content page" style="max-width:720px">
-      <div class="page-title" style="margin-bottom:28px">Paramètres</div>
-      <div class="settings-section">
-        <div class="settings-section-title">🔑 Clés API Polymarket (CLOB)</div>
-        <div class="field"><label>API Key</label><input type="password" id="cfg-apikey" placeholder="Polymarket API Key" style="font-family:'DM Mono',monospace;font-size:12px"></div>
-        <div class="field"><label>Secret</label><input type="password" id="cfg-secret" placeholder="Polymarket Secret" style="font-family:'DM Mono',monospace;font-size:12px"></div>
-        <div class="field"><label>Passphrase</label><input type="password" id="cfg-pass" placeholder="Polymarket Passphrase" style="font-family:'DM Mono',monospace;font-size:12px"></div>
-        <div class="api-note">Obtiens tes clés sur <a href="https://docs.polymarket.com" target="_blank">docs.polymarket.com</a> → CLOB API → Authentication</div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-section-title">💰 Allocation par trade</div>
-        <div class="field-row">
-          <div class="field"><label>Max USDC par trade ($)</label><input type="number" id="cfg-max" value="50" min="1"></div>
-          <div class="field"><label>Budget total ($)</label><input type="number" id="cfg-budget" value="1000" min="10"></div>
-          <div class="field"><label>Trade minimum à copier ($)</label><input type="number" id="cfg-min" value="10" min="1"></div>
-        </div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-section-title">📤 Retrait automatique hebdomadaire</div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Activer le retrait (chaque dimanche)</div><div class="toggle-sub">25% des gains → ton wallet Polygon</div></div>
-          <button class="toggle on" id="toggle-withdraw" onclick="toggleSwitch(this)"></button>
-        </div>
-        <div class="field" style="margin-top:14px">
-          <label>Pourcentage des gains à retirer</label>
-          <div class="pct-row" id="pct-row">
-            <button class="pct-chip" onclick="selPct(this,10)">10%</button>
-            <button class="pct-chip sel" onclick="selPct(this,25)">25%</button>
-            <button class="pct-chip" onclick="selPct(this,50)">50%</button>
-            <button class="pct-chip" onclick="selPct(this,75)">75%</button>
-          </div>
-        </div>
-        <div class="field"><label>Wallet de destination (Polygon)</label><input type="text" id="cfg-dest" placeholder="0x..." style="font-family:'DM Mono',monospace;font-size:12px"></div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-section-title">🛡 Sécurité</div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Stop-loss global</div><div class="toggle-sub">Arrêter si perte ≥ <input type="number" id="cfg-stoploss" value="20" min="5" max="90" style="width:48px;display:inline;padding:3px 6px;font-size:12px"> % du budget</div></div>
-          <button class="toggle on" id="toggle-stoploss" onclick="toggleSwitch(this)"></button>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Notifications browser</div><div class="toggle-sub">Alerte à chaque trade copié</div></div>
-          <button class="toggle on" id="toggle-notif" onclick="toggleSwitch(this)"></button>
-        </div>
-      </div>
-      <button class="save-btn" id="save-btn" onclick="saveSettings()">Sauvegarder les paramètres</button>
-    </div>
-
-    <!-- ── HISTORY ── -->
-    <div id="tab-history" class="tab-content page">
-      <div class="page-header">
-        <div class="page-title">Historique</div>
-        <div class="filter-row">
-          <button class="filter-btn active" onclick="filterHistory('all',this)">Tout</button>
-          <button class="filter-btn" onclick="filterHistory('buy',this)">Achats copiés</button>
-          <button class="filter-btn" onclick="filterHistory('sell',this)">Ventes</button>
-          <button class="filter-btn" onclick="filterHistory('withdraw',this)">Retraits</button>
-        </div>
-      </div>
-      <div id="history-list">
-        <div class="empty">Aucune activité pour le moment.<br>Démarre le bot pour commencer à copier des trades.</div>
-      </div>
-    </div>
-
-  </div><!-- /main -->
-</div><!-- /app -->
+<div style="height:12px"></div>
+<div class="logs" id="logs"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════════
-const STATE = {
-  address: null,
-  usdcBalance: '0.00',
-  maticBalance: '0.0000',
-  botRunning: false,
-  weeklyGains: 0,
-  withdrawPct: 25,
-  positions: [],
-  traders: [],
-  followed: new Set(),
-  activity: [],
-  historyFilter: 'all',
-  pollInterval: null,
-  lastSeenTxs: {},
-  config: {
-    apiKey: '', secret: '', passphrase: '',
-    maxPerTrade: 50, totalBudget: 1000, minTrade: 10,
-    withdrawEnabled: true, withdrawPct: 25, destWallet: '',
-    stopLossEnabled: true, stopLoss: 20, notifications: true
-  }
+const $ = id => document.getElementById(id)
+const K = JSON.parse(localStorage.getItem('cm')||'{}')
+const S = {addr:null, running:false, timer:null, lastSeen:{}, gains:+localStorage.getItem('cm_g')||0, lastW:''}
+
+// Restore saved values
+window.onload = () => {
+  $('f1').value = K.p1||''; $('f2').value = K.p2||''; $('f3').value = K.p3||''
+  $('f4').value = K.p4||''; $('f5').value = K.p5||''
+  $('f6').value = K.p6||'50'; $('f7').value = K.p7||'25'
+  S.lastW = localStorage.getItem('cm_lw')||''
+  if (window.ethereum)
+    window.ethereum.request({method:'eth_accounts'}).then(a=>{ if(a[0]) done(a[0]) })
 }
 
-// Load config from localStorage
-function loadConfig() {
+function save() {
+  const d={p1:$('f1').value,p2:$('f2').value,p3:$('f3').value,p4:$('f4').value,
+           p5:$('f5').value,p6:$('f6').value,p7:$('f7').value}
+  localStorage.setItem('cm', JSON.stringify(d)); Object.assign(K,d)
+}
+
+// ── MetaMask ────────────────────────────────────────────────────────────────
+async function connectWallet() {
+  if (!window.ethereum) { st('MetaMask non trouvé — installe-le sur metamask.io','err'); return }
   try {
-    const saved = localStorage.getItem('copymarket_config')
-    if (saved) STATE.config = { ...STATE.config, ...JSON.parse(saved) }
-    const followed = localStorage.getItem('copymarket_followed')
-    if (followed) STATE.followed = new Set(JSON.parse(followed))
-    const activity = localStorage.getItem('copymarket_activity')
-    if (activity) STATE.activity = JSON.parse(activity)
-    const gains = localStorage.getItem('copymarket_gains')
-    if (gains) STATE.weeklyGains = parseFloat(gains) || 0
-  } catch {}
-}
-
-function saveConfig() {
-  localStorage.setItem('copymarket_config', JSON.stringify(STATE.config))
-  localStorage.setItem('copymarket_followed', JSON.stringify([...STATE.followed]))
-}
-
-function logActivity(type, message, amount = null) {
-  const entry = { type, message, amount, time: Date.now() }
-  STATE.activity.unshift(entry)
-  if (STATE.activity.length > 200) STATE.activity.pop()
-  localStorage.setItem('copymarket_activity', JSON.stringify(STATE.activity.slice(0, 200)))
-  renderHistory()
-}
-
-// ══════════════════════════════════════════════════════════
-// METAMASK CONNECTION
-// ══════════════════════════════════════════════════════════
-async function connectMetaMask() {
-  const btn = document.getElementById('connect-btn')
-  const err = document.getElementById('connect-error')
-  const step = document.getElementById('connect-step')
-  const stepText = document.getElementById('connect-step-text')
-
-  err.style.display = 'none'
-  btn.disabled = true
-
-  function showStep(txt) { step.style.display = 'flex'; stepText.textContent = txt; btn.textContent = txt }
-
-  try {
-    if (!window.ethereum) {
-      err.textContent = 'MetaMask non détecté. Installe l\'extension MetaMask sur Chrome/Brave puis recharge cette page.'
-      err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Connecter MetaMask'; return
+    st('En attente de MetaMask...','info')
+    const [addr] = await window.ethereum.request({method:'eth_requestAccounts'})
+    const chain  = await window.ethereum.request({method:'eth_chainId'})
+    if (chain !== '0x89') {
+      st('Ajout réseau Polygon...','info')
+      try { await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0x89'}]}) }
+      catch(e) { if(e.code===4902) await window.ethereum.request({method:'wallet_addEthereumChain',params:[{
+        chainId:'0x89',chainName:'Polygon Mainnet',
+        nativeCurrency:{name:'MATIC',symbol:'MATIC',decimals:18},
+        rpcUrls:['https://polygon-rpc.com'],blockExplorerUrls:['https://polygonscan.com']
+      }]}) }
     }
-
-    showStep('En attente de MetaMask...')
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    if (!accounts?.length) throw new Error('Aucun compte autorisé')
-
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' })
-    if (chainId !== '0x89') {
-      showStep('Ajout du réseau Polygon...')
-      try {
-        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x89' }] })
-      } catch (e) {
-        if (e.code === 4902) {
-          await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
-            chainId: '0x89', chainName: 'Polygon Mainnet',
-            nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
-            rpcUrls: ['https://polygon-rpc.com'],
-            blockExplorerUrls: ['https://polygonscan.com']
-          }]})
-        } else throw e
-      }
-    }
-
-    STATE.address = accounts[0]
-    showStep('Connecté! Chargement...')
-    await fetchBalances()
-    initApp()
-
-    window.ethereum.on('accountsChanged', a => { if (!a.length) disconnect(); else { STATE.address = a[0]; fetchBalances() } })
-    window.ethereum.on('chainChanged', () => location.reload())
-
-  } catch (e) {
-    err.textContent = e.code === 4001 ? 'Connexion refusée — accepte dans MetaMask.' : (e.message || 'Erreur de connexion')
-    err.style.display = 'block'
-    step.style.display = 'none'
-    btn.disabled = false; btn.textContent = 'Connecter MetaMask'
-  }
+    done(addr)
+  } catch(e) { st(e.code===4001?'Refusé dans MetaMask':e.message,'err') }
 }
 
-function disconnect() {
-  STATE.address = null; STATE.botRunning = false
-  stopBot()
-  document.getElementById('app').style.display = 'none'
-  document.getElementById('connect-screen').style.display = 'flex'
-  document.getElementById('connect-btn').disabled = false
-  document.getElementById('connect-btn').textContent = 'Connecter MetaMask'
-  document.getElementById('connect-step').style.display = 'none'
-}
-
-// ══════════════════════════════════════════════════════════
-// BALANCES (Polygon RPC)
-// ══════════════════════════════════════════════════════════
-const POLYGON_RPC = 'https://polygon-rpc.com'
-const USDC = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'
-
-async function rpcCall(method, params) {
-  const r = await fetch(POLYGON_RPC, { method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ jsonrpc:'2.0', id:1, method, params }) })
-  return (await r.json()).result
-}
-
-async function fetchBalances() {
-  if (!STATE.address) return
+async function done(addr) {
+  S.addr = addr
+  $('waddr').textContent = addr.slice(0,6)+'...'+addr.slice(-4)
   try {
-    // MATIC balance
-    const maticHex = await rpcCall('eth_getBalance', [STATE.address, 'latest'])
-    STATE.maticBalance = (parseInt(maticHex, 16) / 1e18).toFixed(4)
-
-    // USDC balance — balanceOf(address) = 0x70a08231
-    const usdcData = '0x70a08231' + STATE.address.replace('0x','').padStart(64,'0')
-    const usdcHex = await rpcCall('eth_call', [{ to: USDC, data: usdcData }, 'latest'])
-    STATE.usdcBalance = (parseInt(usdcHex, 16) / 1e6).toFixed(2)
-
-    updateBalanceUI()
-  } catch {}
+    const d='0x70a08231'+addr.replace('0x','').padStart(64,'0')
+    const r=await fetch('https://polygon-rpc.com',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({jsonrpc:'2.0',id:1,method:'eth_call',params:[{to:'0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',data:d},'latest']})})
+    const hex=(await r.json()).result
+    $('wbal').textContent = '$'+(parseInt(hex,16)/1e6).toFixed(2)+' USDC'
+  } catch{}
+  $('c1').style.display='none'
+  $('c2').style.display=$('c3').style.display='block'
+  $('bwrap').style.display='block'
+  hideSt()
+  window.ethereum.on('accountsChanged',a=>a.length?done(a[0]):location.reload())
+  window.ethereum.on('chainChanged',()=>location.reload())
 }
 
-function updateBalanceUI() {
-  document.getElementById('stat-usdc').textContent = '$' + STATE.usdcBalance
-  document.getElementById('stat-matic').textContent = STATE.maticBalance
-  document.getElementById('sidebar-addr').textContent = STATE.address?.slice(0,6)+'...'+STATE.address?.slice(-4)
-  document.getElementById('sidebar-bal').textContent = '$' + STATE.usdcBalance + ' USDC'
-  if (!document.getElementById('cfg-dest').value) document.getElementById('cfg-dest').value = STATE.address || ''
-}
-
-// ══════════════════════════════════════════════════════════
-// POLYMARKET API
-// ══════════════════════════════════════════════════════════
-const CLOB = 'https://clob.polymarket.com'
-const GAMMA = 'https://gamma-api.polymarket.com'
-
-async function polyGet(endpoint) {
-  try {
-    const r = await fetch(CLOB + endpoint, { headers: {
-      'POLY_ADDRESS': STATE.address,
-      'POLY_SIGNATURE': STATE.config.secret,
-      'POLY_TIMESTAMP': Math.floor(Date.now()/1000).toString(),
-      'POLY_PASSPHRASE': STATE.config.passphrase
-    }})
-    return await r.json()
-  } catch { return null }
-}
-
-async function polyPost(endpoint, body) {
-  try {
-    const r = await fetch(CLOB + endpoint, { method:'POST',
-      headers: { 'Content-Type':'application/json',
-        'POLY_ADDRESS': STATE.address,
-        'POLY_SIGNATURE': STATE.config.secret,
-        'POLY_TIMESTAMP': Math.floor(Date.now()/1000).toString(),
-        'POLY_PASSPHRASE': STATE.config.passphrase
-      }, body: JSON.stringify(body) })
-    return await r.json()
-  } catch { return null }
-}
-
-// ══════════════════════════════════════════════════════════
-// LEADERBOARD
-// ══════════════════════════════════════════════════════════
-const MOCK_TRADERS = [
-  { rank:1, address:'0x4aF2b7C3D9e1F5A6B88E', name:'CryptoOracle', roi:142.3, volume:48200, winRate:71 },
-  { rank:2, address:'0x9bC1d2E4A7F3B6C5e44A', name:'WhaleTrader',  roi:89.1,  volume:31500, winRate:65 },
-  { rank:3, address:'0x3dE7a8B1C4F2D5E9f22B', name:'PolyMaster',  roi:67.4,  volume:22100, winRate:62 },
-  { rank:4, address:'0x1aA4e5C7B2D8F3A6c77D', name:'SigmaKing',   roi:54.2,  volume:18900, winRate:58 },
-  { rank:5, address:'0x8fF5b6D2E9A4C1B7a33C', name:'AlphaRekt',   roi:41.8,  volume:14300, winRate:55 },
-]
-const AV_BG = ['#EEEDFE','#E1F5EE','#FAECE7','#E6F1FB','#FAEEDA','#FBEAF0']
-const AV_TC = ['#534AB7','#0F6E56','#993C1D','#185FA5','#854F0B','#993556']
-
-async function loadTraders() {
-  let traders = MOCK_TRADERS
-  try {
-    const r = await fetch(GAMMA + '/leaderboard?limit=10&window=1M')
-    const data = await r.json()
-    const list = data?.data || data || []
-    if (list.length) traders = list.slice(0,10).map((t,i) => ({
-      rank:i+1, address: t.proxyWallet||t.address||t.wallet||'0x???',
-      name: t.name||`Trader ${i+1}`,
-      roi: +(t.pnl||t.roi||0).toFixed(1),
-      volume: t.volume||0,
-      winRate: t.winRate||0
-    }))
-  } catch {}
-  STATE.traders = traders
-  renderTraders()
-}
-
-function renderTraders() {
-  const list = document.getElementById('traders-list')
-  if (!STATE.traders.length) { list.innerHTML = '<div class="empty">Chargement...</div>'; return }
-
-  list.innerHTML = STATE.traders.map((t,i) => {
-    const isF = STATE.followed.has(t.address)
-    const bg = AV_BG[i%AV_BG.length], tc = AV_TC[i%AV_TC.length]
-    const ini = t.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()
-    return `<div class="trader-card ${isF?'followed':''}" id="tc-${i}">
-      <div class="rank">#${t.rank}</div>
-      <div class="avatar" style="background:${bg};color:${tc}">${ini}</div>
-      <div><div class="trader-name">${t.name}</div><div class="trader-addr">${t.address.slice(0,12)}...</div></div>
-      <div class="t-stat"><div class="t-stat-val up">+${t.roi}%</div><div class="t-stat-lab">ROI</div></div>
-      <div class="t-stat"><div class="t-stat-val">$${(t.volume/1000).toFixed(0)}k</div><div class="t-stat-lab">Volume</div></div>
-      <div class="t-stat"><div class="t-stat-val">${t.winRate}%</div><div class="t-stat-lab">Win rate</div></div>
-      <button class="follow-btn ${isF?'follow-on':'follow-off'}" onclick="toggleFollow('${t.address}',${i},this)">
-        ${isF?'✓ Suivi':'+ Suivre'}
-      </button>
-    </div>`
-  }).join('')
-  document.getElementById('followed-count').textContent = STATE.followed.size + ' suivis'
-}
-
-function toggleFollow(addr, idx, btn) {
-  if (STATE.followed.has(addr)) {
-    STATE.followed.delete(addr)
-    btn.className = 'follow-btn follow-off'; btn.textContent = '+ Suivre'
-    document.getElementById('tc-'+idx)?.classList.remove('followed')
-    logActivity('system', `Suivi désactivé: ${addr.slice(0,10)}...`)
-  } else {
-    STATE.followed.add(addr)
-    btn.className = 'follow-btn follow-on'; btn.textContent = '✓ Suivi'
-    document.getElementById('tc-'+idx)?.classList.add('followed')
-    logActivity('system', `Suivi activé: ${addr.slice(0,10)}...`)
-  }
-  document.getElementById('followed-count').textContent = STATE.followed.size + ' suivis'
-  saveConfig()
-}
-
-function addCustomTrader() {
-  const input = document.getElementById('custom-addr')
-  const addr = input.value.trim()
-  if (!addr.startsWith('0x') || addr.length < 10) return
-  const exists = STATE.traders.find(t => t.address === addr)
-  if (!exists) {
-    STATE.traders.push({ rank: STATE.traders.length+1, address: addr, name: addr.slice(0,6)+'...'+addr.slice(-4), roi:0, volume:0, winRate:0 })
-  }
-  STATE.followed.add(addr)
-  saveConfig()
-  input.value = ''
-  renderTraders()
-  logActivity('system', `Trader ajouté: ${addr.slice(0,10)}...`)
-}
-
-// ══════════════════════════════════════════════════════════
-// COPY BOT — polls Polygonscan for trader activity
-// ══════════════════════════════════════════════════════════
-const CTF_EXCHANGE = '0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E'
-
+// ── Bot ─────────────────────────────────────────────────────────────────────
 function startBot() {
-  STATE.botRunning = true
-  updateBotUI()
-  logActivity('system', 'Bot de copy trading démarré')
-  STATE.pollInterval = setInterval(pollTraders, 15000)
-  pollTraders()
+  save()
+  if (!K.p1?.trim()) { st('Entre ta clé Polygonscan','err'); return }
+  if (!K.p5?.trim()) { st('Entre au moins un trader à copier','err'); return }
+  S.running=true
+  $('bstart').style.display='none'
+  $('bstop').style.display='block'
+  $('logs').style.display='block'
+  st('Bot actif — surveille les traders toutes les 15s','ok')
+  log('Bot démarré · '+(K.p5||'').split(',').filter(t=>t.trim()).length+' trader(s)')
+  poll(); S.timer=setInterval(poll,15000); setInterval(checkW,60000)
 }
 
 function stopBot() {
-  STATE.botRunning = false
-  if (STATE.pollInterval) clearInterval(STATE.pollInterval)
-  updateBotUI()
-  logActivity('system', 'Bot de copy trading arrêté')
+  S.running=false; clearInterval(S.timer)
+  $('bstart').style.display='block'; $('bstop').style.display='none'
+  hideSt(); log('Bot arrêté.')
 }
 
-function toggleBot() {
-  STATE.botRunning ? stopBot() : startBot()
+async function poll() {
+  if (!S.running) return
+  for (const t of (K.p5||'').split(',').map(x=>x.trim()).filter(Boolean))
+    await checkTrader(t)
 }
 
-function updateBotUI() {
-  const dot = document.getElementById('bot-dot')
-  const statusTxt = document.getElementById('bot-status-text')
-  const btnDot = document.getElementById('bot-btn-dot')
-  const btnTxt = document.getElementById('bot-btn-text')
-  const btn = document.getElementById('bot-btn')
-  if (STATE.botRunning) {
-    dot.classList.add('on'); statusTxt.textContent = 'Bot actif'
-    btnDot.classList.add('on'); btnTxt.textContent = 'Bot actif — Cliquer pour arrêter'
-    btn.className = 'bot-btn bot-on'
-  } else {
-    dot.classList.remove('on'); statusTxt.textContent = 'Bot arrêté'
-    btnDot.classList.remove('on'); btnTxt.textContent = 'Démarrer le bot'
-    btn.className = 'bot-btn bot-off'
-    document.getElementById('positions-empty').textContent = '▶ Démarre le bot pour commencer à copier les traders'
-  }
-}
-
-async function pollTraders() {
-  if (!STATE.botRunning || !STATE.followed.size) return
-  for (const addr of STATE.followed) {
-    try { await checkTrader(addr) } catch {}
-  }
-}
-
-async function checkTrader(addr) {
-  // Poll Polygonscan for new txs to CTF Exchange
-  const url = `https://api.polygonscan.com/api?module=account&action=txlist&address=${addr}&startblock=0&endblock=99999999&sort=desc&page=1&offset=5&apikey=YourFreeKeyFromPolygonscan`
-  const r = await fetch(url)
-  const data = await r.json()
-  const txs = data?.result || []
-  if (!Array.isArray(txs) || !txs.length) return
-
-  const lastSeen = STATE.lastSeenTxs[addr]
-  for (const tx of txs) {
-    if (tx.hash === lastSeen) break
-    if (tx.to?.toLowerCase() === CTF_EXCHANGE.toLowerCase() && tx.isError === '0') {
-      await mirrorTrade(addr, tx)
-    }
-  }
-  STATE.lastSeenTxs[addr] = txs[0].hash
-}
-
-async function mirrorTrade(traderAddr, tx) {
-  const bal = parseFloat(STATE.usdcBalance)
-  const amount = Math.min(STATE.config.maxPerTrade, bal * 0.1)
-  if (amount < STATE.config.minTrade) {
-    logActivity('warning', `Solde insuffisant pour copier (min $${STATE.config.minTrade})`)
-    return
-  }
-
-  // Get market details from CLOB
-  const orderInfo = await polyGet(`/trade/${tx.hash}`)
-  if (!orderInfo || orderInfo.error) {
-    // Simulated trade for demo when CLOB unavailable
-    simulateTrade(traderAddr, amount)
-    return
-  }
-
-  // Place real order via CLOB API
-  const result = await polyPost('/order', {
-    market: orderInfo.market,
-    side: orderInfo.side,
-    price: orderInfo.price,
-    size: amount,
-    type: 'FOK',
-    expiration: Math.floor(Date.now()/1000) + 300
-  })
-
-  if (result && !result.error) {
-    STATE.weeklyGains += amount * 0.05
-    STATE.positions.push({ id: tx.hash, market: orderInfo.market?.slice(0,20), side: orderInfo.side, amount, trader: traderAddr, pnl: 0, time: Date.now() })
-    localStorage.setItem('copymarket_gains', STATE.weeklyGains)
-    logActivity('buy', `Trade copié: ${orderInfo.side} $${amount.toFixed(2)} — ${traderAddr.slice(0,10)}...`, amount)
-    updateDashboard()
-    if (STATE.config.notifications && Notification.permission === 'granted') {
-      new Notification('⚡ Trade Copié!', { body: `${orderInfo.side} $${amount.toFixed(2)}` })
-    }
-  }
-}
-
-function simulateTrade(traderAddr, amount) {
-  // Demo mode: simulate a trade when API keys not configured
-  const sides = ['BUY','SELL']
-  const side = sides[Math.floor(Math.random()*2)]
-  const markets = ['Trump wins 2026','BTC > $150k Q1','Fed rate cut June','S&P 500 ATH 2026']
-  const market = markets[Math.floor(Math.random()*markets.length)]
-  STATE.weeklyGains += amount * 0.04
-  STATE.positions.push({ id: Date.now(), market, side, amount, trader: traderAddr, pnl: amount * (Math.random()*.2-.05), time: Date.now() })
-  localStorage.setItem('copymarket_gains', STATE.weeklyGains)
-  logActivity('buy', `Trade copié (demo): ${side} $${amount.toFixed(2)} — ${market}`, amount)
-  updateDashboard()
-}
-
-// ══════════════════════════════════════════════════════════
-// WITHDRAW
-// ══════════════════════════════════════════════════════════
-async function manualWithdraw() {
-  if (STATE.weeklyGains <= 0) { alert('Pas de gains à retirer cette semaine.'); return }
-  const amount = STATE.weeklyGains * (STATE.config.withdrawPct / 100)
-  if (amount < 1) { alert('Montant trop faible (min $1)'); return }
-
-  const dest = STATE.config.destWallet || STATE.address
-  if (!dest) { alert('Configure un wallet de destination dans Paramètres'); return }
-
-  const btn = document.getElementById('withdraw-btn')
-  btn.disabled = true; btn.textContent = 'Transaction MetaMask...'
-
+async function checkTrader(trader) {
   try {
-    // ERC-20 transfer via MetaMask
-    const amountWei = BigInt(Math.round(amount * 1e6))
-    const amountHex = amountWei.toString(16).padStart(64,'0')
-    const toHex = dest.replace('0x','').padStart(64,'0')
-    const data = '0xa9059cbb' + toHex + amountHex
-
-    const txHash = await window.ethereum.request({ method:'eth_sendTransaction',
-      params:[{ from: STATE.address, to: USDC, data, chainId:'0x89' }]
-    })
-
-    STATE.weeklyGains -= amount
-    localStorage.setItem('copymarket_gains', STATE.weeklyGains)
-    logActivity('withdraw', `Retrait $${amount.toFixed(2)} → ${dest.slice(0,10)}... | Tx: ${txHash?.slice(0,12)}...`, amount)
-    alert(`✅ Retrait de $${amount.toFixed(2)} envoyé!\nTx: ${txHash}`)
-    updateDashboard()
-  } catch (e) {
-    if (e.code !== 4001) alert('Erreur: ' + e.message)
-  }
-
-  btn.disabled = false; btn.textContent = 'Retirer maintenant manuellement'
-}
-
-// Weekly auto-withdraw check
-function checkAutoWithdraw() {
-  if (!STATE.config.withdrawEnabled || !STATE.address) return
-  const lastWithdraw = localStorage.getItem('last_auto_withdraw')
-  const now = new Date()
-  if (now.getDay() === 0) { // Sunday
-    const todayStr = now.toDateString()
-    if (lastWithdraw !== todayStr && STATE.weeklyGains > 1) {
-      localStorage.setItem('last_auto_withdraw', todayStr)
-      manualWithdraw()
+    const r=await fetch(`https://api.polygonscan.com/api?module=account&action=txlist&address=${trader}&sort=desc&page=1&offset=5&apikey=${K.p1}`)
+    const txs=(await r.json()).result
+    if (!Array.isArray(txs)||!txs.length) return
+    const ctf='0x4bfb41d5b3570defd03c39a9a4d8de6bd8b8982e'
+    const last=S.lastSeen[trader], news=[]
+    for (const tx of txs) {
+      if (tx.hash===last) break
+      if (tx.to?.toLowerCase()===ctf && tx.isError==='0') news.push(tx)
     }
-  }
+    S.lastSeen[trader]=txs[0].hash
+    for (const tx of news.reverse()) await mirror(trader,tx)
+  } catch(e){ log('Erreur '+trader.slice(0,10)+'...: '+e.message,'err') }
 }
 
-// ══════════════════════════════════════════════════════════
-// UI UPDATES
-// ══════════════════════════════════════════════════════════
-function updateDashboard() {
-  const gains = STATE.weeklyGains
-  const wAmount = gains * (STATE.config.withdrawPct / 100)
-  document.getElementById('stat-gains').textContent = '$' + gains.toFixed(2)
-  document.getElementById('stat-gains-sub').textContent = `→ $${wAmount.toFixed(2)} à retirer`
-  document.getElementById('stat-positions').textContent = STATE.positions.length
-  document.getElementById('positions-badge').textContent = STATE.positions.length + ' ouvertes'
-  document.getElementById('w-gains').textContent = '$' + gains.toFixed(2)
-  document.getElementById('w-amount').textContent = '$' + wAmount.toFixed(2)
-
-  // Weekly progress
-  const day = new Date().getDay()
-  const pct = Math.round(day / 7 * 100)
-  document.getElementById('w-pct').textContent = pct + '%'
-  document.getElementById('w-bar').style.width = pct + '%'
-
-  // Positions list
-  const posEl = document.getElementById('positions-list')
-  if (!STATE.positions.length) {
-    posEl.innerHTML = `<div class="empty" id="positions-empty">${STATE.botRunning ? '⏳ En attente de trades à copier...' : '▶ Démarre le bot pour commencer à copier les traders'}</div>`
-  } else {
-    posEl.innerHTML = `<div class="pos-list">${STATE.positions.slice(0,10).map(p => `
-      <div class="pos-card">
-        <div class="pos-dot" style="background:${p.pnl>=0?'var(--success)':'var(--danger)'}"></div>
-        <div><div class="pos-name">${p.market}...</div><div class="pos-trader mono">Copié de ${p.trader?.slice(0,8)}... · ${p.side}</div></div>
-        <div class="pos-amount mono">$${p.amount?.toFixed(2)}</div>
-        <div class="pos-pnl ${p.pnl>=0?'up':'down'}">${p.pnl>=0?'+':''}${p.pnl?.toFixed(2)}</div>
-      </div>`).join('')}</div>`
-  }
+async function mirror(trader, tx) {
+  const max=parseFloat(K.p6||50)
+  log('Trade détecté de '+trader.slice(0,10)+'...')
+  const ts=Math.floor(Date.now()/1000).toString()
+  const h={'POLY_ADDRESS':S.addr,'POLY_SIGNATURE':K.p3||'','POLY_TIMESTAMP':ts,'POLY_PASSPHRASE':K.p4||''}
+  try {
+    const info=await(await fetch(`https://clob.polymarket.com/trade/${tx.hash}`,{headers:h})).json()
+    const market=info.market||info.asset_id, side=info.side||'BUY', price=info.price||0.5
+    if (!market) { log('Infos indisponibles — ignoré','warn'); return }
+    const res=await(await fetch('https://clob.polymarket.com/order',{method:'POST',
+      headers:{...h,'Content-Type':'application/json'},
+      body:JSON.stringify({market,side,price,size:max,type:'FOK',expiration:Math.floor(Date.now()/1000)+300})
+    })).json()
+    if (res&&!res.error) {
+      S.gains+=max*0.04; localStorage.setItem('cm_g',S.gains)
+      log('✓ Copié: '+side+' $'+max+' — '+market.slice(0,20)+'...','ok')
+    } else { log('Refusé: '+(res?.error||'?'),'err') }
+  } catch(e){ log('Erreur: '+e.message,'err') }
 }
 
-function updateCountdown() {
-  const now = new Date()
-  const next = new Date(now)
-  const daysUntilSun = (7 - now.getDay()) % 7 || 7
-  next.setDate(now.getDate() + daysUntilSun)
-  next.setHours(0,0,0,0)
-  const diff = next - now
-  const d = Math.floor(diff/86400000)
-  const h = Math.floor((diff%86400000)/3600000)
-  const m = Math.floor((diff%3600000)/60000)
-  document.getElementById('countdown').textContent = `${d}j ${h}h ${m}m`
+async function checkW() {
+  if (!S.running||S.gains<1) return
+  const now=new Date(), day=now.getDay()
+  if (day!==0) return
+  const wk=now.getFullYear()+'-'+Math.ceil((((now-new Date(now.getFullYear(),0,1))/86400000)+1)/7)
+  if (wk===S.lastW) return
+  const amt=S.gains*(parseFloat(K.p7||25)/100)
+  log('Retrait auto $'+amt.toFixed(2)+'...')
+  try {
+    const dest=S.addr, toH=dest.replace('0x','').padStart(64,'0')
+    const amtH=BigInt(Math.round(amt*1e6)).toString(16).padStart(64,'0')
+    const txh=await window.ethereum.request({method:'eth_sendTransaction',params:[{
+      from:S.addr,to:'0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+      data:'0xa9059cbb'+toH+amtH,chainId:'0x89'
+    }]})
+    S.gains-=amt; S.lastW=wk
+    localStorage.setItem('cm_g',S.gains); localStorage.setItem('cm_lw',wk)
+    log('Retrait envoyé! '+txh?.slice(0,14)+'...','ok')
+  } catch(e){ if(e.code!==4001) log('Erreur retrait: '+e.message,'err') }
 }
 
-// ══════════════════════════════════════════════════════════
-// HISTORY
-// ══════════════════════════════════════════════════════════
-const ACT_META = {
-  buy:     { label:'Achat copié',  color:'var(--success)',  dot:'#3fb950' },
-  sell:    { label:'Vente',        color:'var(--danger)',   dot:'#f85149' },
-  withdraw:{ label:'Retrait',      color:'#a78bfa',         dot:'#8247e5' },
-  system:  { label:'Système',      color:'var(--muted)',    dot:'#484f58' },
-  warning: { label:'Avert.',       color:'var(--warning)',  dot:'#d29922' },
+// ── UI ───────────────────────────────────────────────────────────────────────
+function st(msg, type) {
+  const el=$('st'); el.className='status s-'+type; el.style.display='flex'
+  $('st-txt').textContent=msg
 }
-
-function filterHistory(type, btn) {
-  STATE.historyFilter = type
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
-  btn.classList.add('active')
-  renderHistory()
+function hideSt() { $('st').style.display='none' }
+function log(msg, type='') {
+  const b=$('logs'), d=document.createElement('div')
+  d.className='log-'+type
+  d.textContent='['+new Date().toLocaleTimeString('fr-CA')+'] '+msg
+  b.appendChild(d); b.scrollTop=b.scrollHeight
 }
-
-function renderHistory() {
-  const list = document.getElementById('history-list')
-  const items = STATE.historyFilter === 'all' ? STATE.activity : STATE.activity.filter(a => a.type === STATE.historyFilter)
-  if (!items.length) {
-    list.innerHTML = '<div class="empty">Aucune activité.<br>Démarre le bot pour commencer à copier des trades.</div>'
-    return
-  }
-  list.innerHTML = `<div class="activity-list">${items.map(item => {
-    const m = ACT_META[item.type] || ACT_META.system
-    const d = new Date(item.time)
-    const timeStr = d.toLocaleDateString('fr-CA',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
-    const amountStr = item.amount != null ? `<div class="act-amount" style="color:${m.color}">${item.type==='buy'?'-':'+'}$${Math.abs(item.amount).toFixed(2)}</div>` : ''
-    return `<div class="activity-item">
-      <div class="act-dot" style="background:${m.dot}"></div>
-      <div style="flex:1;min-width:0"><div class="act-msg">${item.message}</div><div class="act-time mono">${timeStr}</div></div>
-      ${amountStr}
-    </div>`
-  }).join('')}</div>`
-}
-
-// ══════════════════════════════════════════════════════════
-// SETTINGS
-// ══════════════════════════════════════════════════════════
-function loadSettingsUI() {
-  const c = STATE.config
-  document.getElementById('cfg-apikey').value = c.apiKey || ''
-  document.getElementById('cfg-secret').value = c.secret || ''
-  document.getElementById('cfg-pass').value = c.passphrase || ''
-  document.getElementById('cfg-max').value = c.maxPerTrade || 50
-  document.getElementById('cfg-budget').value = c.totalBudget || 1000
-  document.getElementById('cfg-min').value = c.minTrade || 10
-  document.getElementById('cfg-dest').value = c.destWallet || STATE.address || ''
-  document.getElementById('cfg-stoploss').value = c.stopLoss || 20
-  setToggle('toggle-withdraw', c.withdrawEnabled !== false)
-  setToggle('toggle-stoploss', c.stopLossEnabled !== false)
-  setToggle('toggle-notif', c.notifications !== false)
-  document.querySelectorAll('.pct-chip').forEach(btn => {
-    btn.classList.toggle('sel', parseInt(btn.textContent) === (c.withdrawPct || 25))
-  })
-}
-
-function saveSettings() {
-  STATE.config.apiKey = document.getElementById('cfg-apikey').value
-  STATE.config.secret = document.getElementById('cfg-secret').value
-  STATE.config.passphrase = document.getElementById('cfg-pass').value
-  STATE.config.maxPerTrade = parseFloat(document.getElementById('cfg-max').value) || 50
-  STATE.config.totalBudget = parseFloat(document.getElementById('cfg-budget').value) || 1000
-  STATE.config.minTrade = parseFloat(document.getElementById('cfg-min').value) || 10
-  STATE.config.destWallet = document.getElementById('cfg-dest').value
-  STATE.config.stopLoss = parseFloat(document.getElementById('cfg-stoploss').value) || 20
-  STATE.config.withdrawEnabled = document.getElementById('toggle-withdraw').classList.contains('on')
-  STATE.config.stopLossEnabled = document.getElementById('toggle-stoploss').classList.contains('on')
-  STATE.config.notifications = document.getElementById('toggle-notif').classList.contains('on')
-  saveConfig()
-
-  // Request notification permission
-  if (STATE.config.notifications && Notification.permission === 'default') Notification.requestPermission()
-
-  const btn = document.getElementById('save-btn')
-  btn.textContent = '✓ Paramètres sauvegardés!'; btn.classList.add('saved')
-  setTimeout(() => { btn.textContent = 'Sauvegarder les paramètres'; btn.classList.remove('saved') }, 2500)
-}
-
-function selPct(btn, val) {
-  document.querySelectorAll('.pct-chip').forEach(b => b.classList.remove('sel'))
-  btn.classList.add('sel')
-  STATE.config.withdrawPct = val
-}
-
-function setToggle(id, val) {
-  const el = document.getElementById(id)
-  el.classList.toggle('on', val); el.classList.toggle('off', !val)
-}
-
-function toggleSwitch(btn) { btn.classList.toggle('on'); btn.classList.toggle('off') }
-
-// ══════════════════════════════════════════════════════════
-// NAVIGATION
-// ══════════════════════════════════════════════════════════
-function switchTab(id, btn) {
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'))
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'))
-  btn.classList.add('active')
-  document.getElementById('tab-'+id).classList.add('active')
-}
-
-// ══════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════
-function initApp() {
-  document.getElementById('connect-screen').style.display = 'none'
-  document.getElementById('app').style.display = 'flex'
-  loadSettingsUI()
-  updateBalanceUI()
-  updateDashboard()
-  renderHistory()
-  loadTraders()
-  updateCountdown()
-  setInterval(updateCountdown, 60000)
-  setInterval(fetchBalances, 30000)
-  setInterval(checkAutoWithdraw, 60000)
-  if (Notification.permission === 'default') Notification.requestPermission()
-}
-
-loadConfig()
 </script>
 </body>
 </html>
